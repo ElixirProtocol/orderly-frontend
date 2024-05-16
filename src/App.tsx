@@ -28,7 +28,8 @@ import {
   loadBrokerId,
   loadContractAddress,
   saveBrokerId,
-  saveContractAddress
+  saveContractAddress,
+  registerAccount
 } from './helpers';
 
 function App() {
@@ -247,6 +248,22 @@ function App() {
         >
           Load Account
         </Button>
+
+        <Button
+          disabled={!wallet || !connectedChain || !wallet.accounts[0]}
+          onClick={async () => {
+            const address = wallet?.accounts[0]?.address;
+            if (!wallet || !connectedChain) return;
+            await registerAccount(
+              wallet,
+              connectedChain.id,
+              brokerId,
+            );
+          }}
+        >
+          Register Account
+        </Button>
+
       </Flex>
 
       {accountId ? (

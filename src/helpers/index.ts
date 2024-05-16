@@ -34,6 +34,12 @@ const MESSAGE_TYPES = {
     { name: 'chainId', type: 'uint256' },
     { name: 'verifyingContract', type: 'address' }
   ],
+  Registration: [
+    { name: 'brokerId', type: 'string' },
+    { name: 'chainId', type: 'uint256' },
+    { name: 'timestamp', type: 'uint64' },
+    { name: 'registrationNonce', type: 'uint256' },
+  ],
   DelegateSigner: [
     { name: 'delegateContract', type: 'address' },
     { name: 'brokerId', type: 'string' },
@@ -93,6 +99,48 @@ export async function registerExampleDelegateSigner(
     delegateSigner: address
   });
   return res.hash;
+}
+
+export async function registerAccount(
+  wallet: WalletState,
+  chainId: string,
+  brokerId: string,
+): Promise<DelegateSignerResponse> {
+  const nonceRes = await fetch(`${getBaseUrl(chainId)}/v1/registration_nonce`);
+  const nonceJson = await nonceRes.json();
+  const registrationNonce = nonceJson.data.registration_nonce as string;
+  const registerAccountMessage = {
+    brokerId,
+    chainId: Number(chainId),
+    timestamp: Date.now(),
+    registrationNonce: Number(registrationNonce),
+  };
+
+  console.log(registerAccountMessage);
+  const provider = new BrowserProvider(wallet.provider);
+  const signer = await provider.getSigner();
+  const signature = await signer.signTypedData(
+    getOffChainDomain(chainId),
+    { Registration: MESSAGE_TYPES.Registration },
+    registerAccountMessage
+  );
+
+  const registerAccountRes = await fetch(`${getBaseUrl(chainId)}/v1/register_account`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: registerAccountMessage,
+      signature,
+      userAddress: wallet.accounts[0].address
+    })
+  });
+  const registerJson = await registerAccountRes.json();
+  if (!registerJson.success) {
+    throw new Error(registerJson.message);
+  }
+  return registerJson.data;
 }
 
 export async function announceDelegateSigner(
