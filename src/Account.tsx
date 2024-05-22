@@ -1,5 +1,5 @@
 import { getPublicKeyAsync } from '@noble/ed25519';
-import { Button, Card, Container, Flex, Heading, Text, TextField } from '@radix-ui/themes';
+import { Button, Card, Container, Flex, Heading, Text } from '@radix-ui/themes';
 import { useConnectWallet, useSetChain } from '@web3-onboard/react';
 import { encodeBase58 } from 'ethers';
 import { FC, useEffect, useState } from 'react';
@@ -7,10 +7,6 @@ import { FC, useEffect, useState } from 'react';
 import { SafeInstructions } from './SafeInstructions';
 import {
   DelegateSignerResponse,
-  announceDelegateSigner,
-  delegateAddOrderlyKey,
-  registerExampleDelegateSigner,
-  isTestnet,
   addOrderlyKey
 } from './helpers';
 
@@ -25,13 +21,10 @@ export const Account: FC<{
 }> = ({
   brokerId,
   accountId,
-  contractAddress,
   delegateSigner,
-  setDelegateSigner,
   orderlyKey,
   setOrderlyKey
 }) => {
-    const [txHash, setTxHash] = useState<string>('');
     const [publicKey, setPublicKey] = useState<string>();
 
     const [{ wallet }] = useConnectWallet();
@@ -105,56 +98,7 @@ export const Account: FC<{
           )}
         </Card>
 
-        {connectedChain && isTestnet(connectedChain.id) && (
-          <Button
-            disabled={!wallet || !connectedChain || !wallet.accounts[0]}
-            onClick={async () => {
-              const address = wallet?.accounts[0]?.address;
-              if (!wallet || !connectedChain || !address) return;
-              const hash = await registerExampleDelegateSigner(
-                wallet,
-                brokerId,
-                connectedChain.id,
-                address
-              );
-              setTxHash(hash);
-            }}
-          >
-            Register Delegate Signer
-          </Button>
-        )}
-
         {connectedChain && <SafeInstructions brokerId={brokerId} chainId={connectedChain.id} />}
-
-        <Flex direction="column" gap="1">
-          <label>
-            Transaction Hash
-            <TextField.Root>
-              <TextField.Input
-                value={txHash}
-                onChange={(event) => {
-                  setTxHash(event.target.value);
-                }}
-              />
-            </TextField.Root>
-          </label>
-          <Button
-            disabled={!wallet || !connectedChain || !brokerId || !txHash}
-            onClick={async () => {
-              if (!wallet || !connectedChain || !brokerId || !txHash) return;
-              const res = await announceDelegateSigner(
-                wallet,
-                connectedChain.id,
-                brokerId,
-                contractAddress,
-                txHash
-              );
-              setDelegateSigner(res);
-            }}
-          >
-            Accept Delegate Signer Link
-          </Button>
-        </Flex>
 
         <Button
           disabled={!wallet || !connectedChain || !brokerId}
@@ -172,22 +116,6 @@ export const Account: FC<{
           Create EOA Orderly Key
         </Button>
 
-        <Button
-          disabled={!wallet || !connectedChain || !brokerId}
-          onClick={async () => {
-            if (!wallet || !connectedChain || !brokerId) return;
-            const key = await delegateAddOrderlyKey(
-              wallet,
-              connectedChain.id,
-              brokerId,
-              contractAddress,
-              accountId
-            );
-            setOrderlyKey(key);
-          }}
-        >
-          Create Delegate Orderly Key
-        </Button>
       </Flex>
     );
   };

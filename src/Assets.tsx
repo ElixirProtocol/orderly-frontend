@@ -166,98 +166,98 @@ export const Assets: FC<{
           Set Fees
         </Button>
 
-        <Button
-          disabled={
-            !wallet ||
-            !amount ||
-            !usdcContract ||
-            allowance == null ||
-            !connectedChain ||
-            !brokerId ||
-            !balance ||
-            balance < parseUnits(amount, 6)
-          }
-          onClick={async () => {
-            if (
-              !wallet ||
-              !amount ||
-              !usdcContract ||
-              allowance == null ||
-              !connectedChain ||
-              !brokerId ||
-              !balance
-            )
-              return;
-            const amountBN = parseUnits(amount, 6);
-            if (balance < amountBN) return;
-            if (allowance < amountBN) {
-              await usdcContract.approve(getVaultAddress(connectedChain.id), amountBN);
-              const allow = await usdcContract.allowance(
-                wallet.accounts[0].address,
-                getVaultAddress(connectedChain.id)
-              );
-              setAllowance(allow);
-            } else {
-              await delegateDeposit(
-                wallet,
-                connectedChain.id,
-                brokerId,
-                contractAddress,
-                amountBN.toString(),
-                contractAddress,
-                accountId
-              );
-            }
-          }}
-        >
-          {needsApproval ? 'Approve' : 'Deposit to Contract'}
-        </Button>
-
-        <Button
-          disabled={
-            !wallet ||
-            !connectedChain ||
-            !orderlyKey ||
-            !amount ||
-            !brokerId ||
-            parseUnits(String(vaultBalance), 6) < parseUnits(amount, 6) ||
-            parseUnits(amount, 6) < 2_500_000n // fee
-          }
-          onClick={async () => {
-            if (!wallet || !connectedChain || !orderlyKey || !amount) return;
-            const amountBN = parseUnits(amount, 6);
-            if (parseUnits(String(vaultBalance), 6) < amountBN) return;
-            await delegateWithdraw(
-              wallet,
-              connectedChain.id,
-              brokerId,
-              contractAddress,
-              accountId,
-              orderlyKey,
-              amountBN.toString(),
-              contractAddress
-            );
-          }}
-        >
-          Withdraw from Contract
-        </Button>
-
-        <Button
-          disabled={!wallet || !connectedChain || !brokerId || !orderlyKey}
-          onClick={async () => {
-            if (!wallet || !connectedChain || !brokerId || !orderlyKey) return;
-            await delegateSettlePnL(
-              wallet,
-              connectedChain.id,
-              brokerId,
-              contractAddress,
-              accountId,
-              orderlyKey
-            );
-          }}
-        >
-          Settle Delegate PnL
-        </Button>
+        {/* <Button */}
+        {/*   disabled={ */}
+        {/*     !wallet || */}
+        {/*     !amount || */}
+        {/*     !usdcContract || */}
+        {/*     allowance == null || */}
+        {/*     !connectedChain || */}
+        {/*     !brokerId || */}
+        {/*     !balance || */}
+        {/*     balance < parseUnits(amount, 6) */}
+        {/*   } */}
+        {/*   onClick={async () => { */}
+        {/*     if ( */}
+        {/*       !wallet || */}
+        {/*       !amount || */}
+        {/*       !usdcContract || */}
+        {/*       allowance == null || */}
+        {/*       !connectedChain || */}
+        {/*       !brokerId || */}
+        {/*       !balance */}
+        {/*     ) */}
+        {/*       return; */}
+        {/*     const amountBN = parseUnits(amount, 6); */}
+        {/*     if (balance < amountBN) return; */}
+        {/*     if (allowance < amountBN) { */}
+        {/*       await usdcContract.approve(getVaultAddress(connectedChain.id), amountBN); */}
+        {/*       const allow = await usdcContract.allowance( */}
+        {/*         wallet.accounts[0].address, */}
+        {/*         getVaultAddress(connectedChain.id) */}
+        {/*       ); */}
+        {/*       setAllowance(allow); */}
+        {/*     } else { */}
+        {/*       await delegateDeposit( */}
+        {/*         wallet, */}
+        {/*         connectedChain.id, */}
+        {/*         brokerId, */}
+        {/*         contractAddress, */}
+        {/*         amountBN.toString(), */}
+        {/*         contractAddress, */}
+        {/*         accountId */}
+        {/*       ); */}
+        {/*     } */}
+        {/*   }} */}
+        {/* > */}
+        {/*   {needsApproval ? 'Approve' : 'Deposit to Contract'} */}
+        {/* </Button> */}
+        {/**/}
+        {/* <Button */}
+        {/*   disabled={ */}
+        {/*     !wallet || */}
+        {/*     !connectedChain || */}
+        {/*     !orderlyKey || */}
+        {/*     !amount || */}
+        {/*     !brokerId || */}
+        {/*     parseUnits(String(vaultBalance), 6) < parseUnits(amount, 6) || */}
+        {/*     parseUnits(amount, 6) < 2_500_000n // fee */}
+        {/*   } */}
+        {/*   onClick={async () => { */}
+        {/*     if (!wallet || !connectedChain || !orderlyKey || !amount) return; */}
+        {/*     const amountBN = parseUnits(amount, 6); */}
+        {/*     if (parseUnits(String(vaultBalance), 6) < amountBN) return; */}
+        {/*     await delegateWithdraw( */}
+        {/*       wallet, */}
+        {/*       connectedChain.id, */}
+        {/*       brokerId, */}
+        {/*       contractAddress, */}
+        {/*       accountId, */}
+        {/*       orderlyKey, */}
+        {/*       amountBN.toString(), */}
+        {/*       contractAddress */}
+        {/*     ); */}
+        {/*   }} */}
+        {/* > */}
+        {/*   Withdraw from Contract */}
+        {/* </Button> */}
+        {/**/}
+        {/* <Button */}
+        {/*   disabled={!wallet || !connectedChain || !brokerId || !orderlyKey} */}
+        {/*   onClick={async () => { */}
+        {/*     if (!wallet || !connectedChain || !brokerId || !orderlyKey) return; */}
+        {/*     await delegateSettlePnL( */}
+        {/*       wallet, */}
+        {/*       connectedChain.id, */}
+        {/*       brokerId, */}
+        {/*       contractAddress, */}
+        {/*       accountId, */}
+        {/*       orderlyKey */}
+        {/*     ); */}
+        {/*   }} */}
+        {/* > */}
+        {/*   Settle Delegate PnL */}
+        {/* </Button> */}
       </Flex>
     </Flex>
   );
