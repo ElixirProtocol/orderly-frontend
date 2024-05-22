@@ -252,7 +252,6 @@ function App() {
         <Button
           disabled={!wallet || !connectedChain || !wallet.accounts[0]}
           onClick={async () => {
-            const address = wallet?.accounts[0]?.address;
             if (!wallet || !connectedChain) return;
             await registerAccount(
               wallet,

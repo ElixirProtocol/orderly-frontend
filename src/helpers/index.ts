@@ -34,6 +34,14 @@ const MESSAGE_TYPES = {
     { name: 'chainId', type: 'uint256' },
     { name: 'verifyingContract', type: 'address' }
   ],
+  AddOrderlyKey: [
+    { name: 'brokerId', type: 'string' },
+    { name: 'chainId', type: 'uint256' },
+    { name: 'orderlyKey', type: 'string' },
+    { name: 'scope', type: 'string' },
+    { name: 'timestamp', type: 'uint64' },
+    { name: 'expiration', type: 'uint64' }
+  ],
   Registration: [
     { name: 'brokerId', type: 'string' },
     { name: 'chainId', type: 'uint256' },
@@ -99,6 +107,34 @@ export async function registerExampleDelegateSigner(
     delegateSigner: address
   });
   return res.hash;
+}
+
+export async function setFees(
+  chainId: string,
+  accountId: string,
+  orderlyKey: Uint8Array,
+) {
+  const res = await signAndSendRequest(
+    accountId,
+    orderlyKey,
+    `${getBaseUrl(chainId)}/v1/broker/fee_rate/default`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        'maker_fee_rate': 0,
+        'taker_fee_rate': 0.0003
+      })
+    }
+
+  );
+  if (!res.ok) {
+    throw new Error(`Could not set fee rates`);
+  }
+  const json = await res.json();
+  if (!json.success) {
+    console.log(json)
+    throw new Error(json.message);
+  }
 }
 
 export async function registerAccount(
@@ -188,6 +224,55 @@ export async function announceDelegateSigner(
   }
   return registerJson.data;
 }
+
+export async function addOrderlyKey(
+  wallet: WalletState,
+  chainId: string,
+  brokerId: string,
+  accountId: string
+): Promise<Uint8Array> {
+  const privateKey = utils.randomPrivateKey();
+  const orderlyKey = `ed25519:${encodeBase58(await getPublicKeyAsync(privateKey))}`;
+  const timestamp = Date.now();
+  const addKeyMessage = {
+    brokerId,
+    chainId: Number(chainId),
+    orderlyKey,
+    scope: 'read,trading',
+    timestamp,
+    expiration: timestamp + 1_000 * 60 * 60 * 24 * 365 // 1 year
+  };
+
+  const provider = new BrowserProvider(wallet.provider);
+  const signer = await provider.getSigner();
+  const signature = await signer.signTypedData(
+    getOffChainDomain(chainId),
+    { AddOrderlyKey: MESSAGE_TYPES.AddOrderlyKey },
+    addKeyMessage
+  );
+
+  const keyRes = await fetch(`${getBaseUrl(chainId)}/v1/orderly_key`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: addKeyMessage,
+      signature,
+      userAddress: wallet.accounts[0].address
+    })
+  });
+  const keyJson = await keyRes.json();
+  if (!keyJson.success) {
+    throw new Error(keyJson.message);
+  }
+  window.localStorage.setItem(
+    `${ORDERLY_KEY_LOCAL_STORAGE}:${accountId}`,
+    base64EncodeURL(privateKey)
+  );
+  return privateKey;
+}
+
 
 export async function delegateAddOrderlyKey(
   wallet: WalletState,

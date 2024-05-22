@@ -10,7 +10,8 @@ import {
   delegateDeposit,
   delegateWithdraw,
   getClientHolding,
-  delegateSettlePnL
+  delegateSettlePnL,
+  setFees
 } from './helpers';
 
 export const Assets: FC<{
@@ -151,6 +152,19 @@ export const Assets: FC<{
             }}
           />
         </TextField.Root>
+        <Button
+          disabled={!wallet || !connectedChain || !brokerId || !orderlyKey}
+          onClick={async () => {
+            if (!wallet || !connectedChain || !brokerId || !orderlyKey) return;
+            await setFees(
+              connectedChain.id,
+              accountId,
+              orderlyKey
+            );
+          }}
+        >
+          Set Fees
+        </Button>
 
         <Button
           disabled={
